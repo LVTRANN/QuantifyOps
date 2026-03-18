@@ -107,6 +107,12 @@ body{font-family:var(--font);color:var(--text);background:var(--bg);font-size:14
 .role-supervisor{background:rgba(255,255,255,0.1);color:var(--nav-text);}
 .role-coordinator{background:rgba(255,255,255,0.1);color:var(--nav-text);}
 .role-viewer{background:rgba(255,255,255,0.06);color:var(--nav-text2);}
+/* Role badges in main content (light bg) */
+.role-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:.2px;display:inline-flex;}
+.role-badge.role-admin{background:rgba(224,123,0,0.15);color:#c06a00;border:1px solid rgba(224,123,0,0.3);}
+.role-badge.role-supervisor{background:rgba(60,130,220,0.12);color:#2a6fc4;border:1px solid rgba(60,130,220,0.3);}
+.role-badge.role-coordinator{background:rgba(40,160,100,0.12);color:#1a8a55;border:1px solid rgba(40,160,100,0.3);}
+.role-badge.role-viewer{background:rgba(120,120,120,0.1);color:var(--text2);border:1px solid var(--border);}
 .notif-bell{position:relative;display:flex;align-items:center;gap:9px;padding:0 10px 0 12px;height:38px;font-size:13px;font-weight:500;cursor:pointer;color:var(--nav-text2);border:none;border-left:3px solid transparent;border-radius:0 8px 8px 0;background:transparent;transition:all .15s;user-select:none;white-space:nowrap;margin-right:10px;width:100%;text-align:left;}
 .notif-bell:hover{color:var(--nav-text);background:rgba(255,255,255,0.05);}
 .notif-badge{position:absolute;left:18px;top:7px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;line-height:1;}
@@ -132,6 +138,7 @@ body{font-family:var(--font);color:var(--text);background:var(--bg);font-size:14
 .nav.collapsed .nav-tab-sub{display:none;}
 .nav.collapsed .reports-submenu{display:none!important;}
 .nav.collapsed .nav-brand{justify-content:center;padding:10px 0;border-bottom:1px solid var(--nav-border);}
+.nav.collapsed .nav-brand-logo{display:none!important;}
 .nav.collapsed .nav-toggle{margin:0;color:var(--nav-text);}
 .nav.collapsed .nav-tab{justify-content:center;padding:0;margin:2px 8px;border-radius:6px;border-left:none;width:40px;height:38px;}
 .nav.collapsed .nav-tab.active{background:rgba(224,123,0,0.18);}
@@ -435,23 +442,25 @@ body.theme-dark{
   <div class="nav" id="main-nav">
     <!-- Brand -->
     <div class="nav-brand">
-      <div class="nav-brand-icon"><svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="36" width="10" height="40" rx="2.5" fill="white" opacity=".2"/>
-        <rect x="4" y="58" width="10" height="18" rx="2.5" fill="#E07B00" opacity=".8"/>
-        <rect x="17" y="18" width="10" height="58" rx="2.5" fill="white" opacity=".2"/>
-        <rect x="17" y="30" width="10" height="46" rx="2.5" fill="#E07B00" opacity=".9"/>
-        <rect x="30" y="28" width="10" height="48" rx="2.5" fill="white" opacity=".2"/>
-        <rect x="30" y="57" width="10" height="19" rx="2.5" fill="#E07B00" opacity=".7"/>
-        <rect x="43" y="12" width="10" height="64" rx="2.5" fill="white" opacity=".2"/>
-        <rect x="43" y="15" width="10" height="61" rx="2.5" fill="#E07B00"/>
-        <rect x="56" y="24" width="10" height="52" rx="2.5" fill="white" opacity=".2"/>
-        <rect x="56" y="45" width="10" height="31" rx="2.5" fill="#E07B00" opacity=".8"/>
-        <rect x="69" y="34" width="10" height="42" rx="2.5" fill="white" opacity=".2"/>
-        <rect x="69" y="63" width="10" height="13" rx="2.5" fill="#E07B00" opacity=".6"/>
-        <line x1="2" y1="78" x2="81" y2="78" stroke="white" stroke-width="2" stroke-linecap="round" opacity=".25"/>
-        <rect x="0" y="82" width="88" height="5" rx="2" fill="#E07B00"/>
-      </svg></div>
-      <span class="nav-brand-text">Quantify<span style="color:var(--accent)">Ops</span></span>
+      <div class="nav-brand-logo" onclick="showPage('dashboard')" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;min-width:0;">
+        <div class="nav-brand-icon"><svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="36" width="10" height="40" rx="2.5" fill="white" opacity=".2"/>
+          <rect x="4" y="58" width="10" height="18" rx="2.5" fill="#E07B00" opacity=".8"/>
+          <rect x="17" y="18" width="10" height="58" rx="2.5" fill="white" opacity=".2"/>
+          <rect x="17" y="30" width="10" height="46" rx="2.5" fill="#E07B00" opacity=".9"/>
+          <rect x="30" y="28" width="10" height="48" rx="2.5" fill="white" opacity=".2"/>
+          <rect x="30" y="57" width="10" height="19" rx="2.5" fill="#E07B00" opacity=".7"/>
+          <rect x="43" y="12" width="10" height="64" rx="2.5" fill="white" opacity=".2"/>
+          <rect x="43" y="15" width="10" height="61" rx="2.5" fill="#E07B00"/>
+          <rect x="56" y="24" width="10" height="52" rx="2.5" fill="white" opacity=".2"/>
+          <rect x="56" y="45" width="10" height="31" rx="2.5" fill="#E07B00" opacity=".8"/>
+          <rect x="69" y="34" width="10" height="42" rx="2.5" fill="white" opacity=".2"/>
+          <rect x="69" y="63" width="10" height="13" rx="2.5" fill="#E07B00" opacity=".6"/>
+          <line x1="2" y1="78" x2="81" y2="78" stroke="white" stroke-width="2" stroke-linecap="round" opacity=".25"/>
+          <rect x="0" y="82" width="88" height="5" rx="2" fill="#E07B00"/>
+        </svg></div>
+        <span class="nav-brand-text">Quantify<span style="color:var(--accent)">Ops</span></span>
+      </div>
       <button class="nav-toggle" id="nav-toggle" onclick="toggleNav()" title="Toggle sidebar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="18" y1="3" x2="18" y2="21"/></svg>
       </button>
@@ -465,11 +474,6 @@ body.theme-dark{
     </div>
     <!-- Nav items -->
     <div style="padding:8px 0;flex:1;">
-      <button class="notif-bell" id="notif-bell" onclick="openNotifModal()" title="Notifications">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.65"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="notif-label">Notifications</span>
-        <span class="notif-badge" id="notif-badge" style="display:none;"></span>
-      </button>
       <div class="nav-section-label">Main</div>
       <div class="nav-tab active" id="tab-dashboard" onclick="showPage('dashboard')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -507,6 +511,12 @@ body.theme-dark{
         <span class="nav-tab-label">Setup</span>
       </div>
     </div>
+    <!-- Notifications -->
+    <button class="notif-bell" id="notif-bell" onclick="openNotifModal()" title="Notifications">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.65"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-label">Notifications</span>
+      <span class="notif-badge" id="notif-badge" style="display:none;"></span>
+    </button>
     <!-- User -->
     <div class="nav-user">
       <div class="nav-avatar" id="nav-avatar">—</div>
@@ -892,7 +902,7 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 // ── State ──────────────────────────────────────────────────────────
 let currentUser=null,currentProfile=null,projectId=null;
-let items=[],logEntries=[],groups=[],allProjects=[],projectMemberships=[];
+let items=[],logEntries=[],groups=[],allProjects=[],projectMemberships=[],teamMembers=[];
 let currentProjectRole='viewer';
 let selectMode=false,editingItemId=null,dailyItemId=null;
 let renamingGroupName=null,editingLogId=null,editingPhotoUrl=null;
@@ -1032,8 +1042,8 @@ async function bootstrap(){
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('app').style.display='block';
     document.getElementById('entry-date').value=today();
+    await loadUsers();
     renderDashboard();
-    if(isAdmin())loadUsers();
     loadNotifications();
   }catch(err){
     console.error('Bootstrap error:',err);
@@ -1103,6 +1113,7 @@ async function loadUsers(){
     (profs||[]).forEach(p=>{profileMap[p.id]=p;});
   }
   const data=members0.map(m=>({...m,profiles:profileMap[m.user_id]||{}}));
+  teamMembers=data;
   const el=document.getElementById('users-list');if(!el)return;
   const members=data||[];
   const canEdit=isAdmin();
@@ -1140,7 +1151,7 @@ async function loadUsers(){
               ?`<select style="${roleSelectStyle(m.role)}" onchange="updateUserRole('${m.user_id}',this.value);applyRoleSelectStyle(this)">
                   ${roleOptions.map(o=>`<option value="${o.value}"${m.role===o.value?' selected':''}>${o.label}</option>`).join('')}
                 </select>`
-              :`<span class="nav-role role-${m.role}" style="display:inline-flex;padding:3px 10px;">${roleDisplayName(m.role)}</span>`
+              :`<span class="role-badge role-${m.role}">${roleDisplayName(m.role)}</span>`
             }
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
@@ -1505,7 +1516,8 @@ function renderDashboard(){
           <div class="prog-track"><div class="prog-fill ${pctClass(cp)}" style="width:${cp}%"></div></div>
         </div>`).join('')}
     </div>
-    ${logEntries.length?`<div class="card"><div class="sec-header"><div class="sec-title">Recent entries</div><a href="#" onclick="showPage('log');return false" style="font-size:12px">View all →</a></div>${[...logEntries].slice(0,4).map(e=>{const it=items.find(i=>i.id===e.item_id);return`<div class="log-entry"><div class="log-dot"></div><div><span style="font-weight:600;font-size:13px">${it?it.item_number+' '+it.description:'Unknown'}</span> <span style="color:var(--text2)">— ${fmtN(e.qty)} ${it?it.unit:''}</span><div style="font-size:12px;color:var(--text2);margin-top:2px">${fmtDate(e.entry_date)} · ${e.supervisor_name||'—'}${e.notes?' · '+e.notes:''}</div></div></div>`;}).join('')}</div>`:''}`;
+    ${logEntries.length?`<div class="card"><div class="sec-header"><div class="sec-title">Recent entries</div><a href="#" onclick="showPage('log');return false" style="font-size:12px">View all →</a></div>${[...logEntries].slice(0,4).map(e=>{const it=items.find(i=>i.id===e.item_id);return`<div class="log-entry"><div class="log-dot"></div><div><span style="font-weight:600;font-size:13px">${it?it.item_number+' '+it.description:'Unknown'}</span> <span style="color:var(--text2)">— ${fmtN(e.qty)} ${it?it.unit:''}</span><div style="font-size:12px;color:var(--text2);margin-top:2px">${fmtDate(e.entry_date)} · ${e.supervisor_name||'—'}${e.notes?' · '+e.notes:''}</div></div></div>`;}).join('')}</div>`:''}
+    ${teamMembers.length?`<div class="card"><div class="sec-header"><div class="sec-title">Team</div>${isAdmin()?'<a href="#" onclick="showPage(\'setup\');return false" style="font-size:12px">Manage →</a>':''}</div><div style="display:flex;flex-direction:column;gap:0">${teamMembers.map(m=>{const u=m.profiles||{};const isSelf=m.user_id===currentUser.id;return`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text2);flex-shrink:0">${(u.full_name||u.email||'?')[0].toUpperCase()}</div><div><div style="font-size:13px;font-weight:500">${u.full_name||'<span style="color:var(--text3);font-style:italic">No name</span>'} ${isSelf?'<span style="font-size:11px;color:var(--text3)">(you)</span>':''}</div><div style="font-size:11px;color:var(--text2);margin-top:1px">${u.email||''}</div></div></div><span class="role-badge role-${m.role}">${roleDisplayName(m.role)}</span></div>`;}).join('')}</div></div>`:''}`;
 }
 
 // ── Items page ─────────────────────────────────────────────────────
@@ -1675,7 +1687,7 @@ function renderDailyPage(){
   if(df)df.innerHTML=cats.map(c=>`<button class="filter-chip${activeDailyCat===c?' active':''}" onclick="setDailyCat('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
   renderDailyList();
 }
-function setDailyCat(cat){activeDailyCat=cat;renderDailyList();}
+function setDailyCat(cat){activeDailyCat=cat;renderDailyPage();}
 function renderDailyList(){
   const selectedDate=document.getElementById('entry-date')?.value||today();
   const el=document.getElementById('daily-items-list');
