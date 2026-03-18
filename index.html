@@ -48,10 +48,10 @@ body{font-family:var(--font);color:var(--text);background:var(--bg);font-size:14
 
 /* Auth */
 #auth-screen{display:flex;min-height:100vh;}
-.auth-left{width:45%;min-width:320px;background:#131211;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 48px;position:relative;overflow:hidden;}
-.auth-left::before{content:'';position:absolute;top:-120px;right:-120px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(224,123,0,0.08) 0%,transparent 70%);}
-.auth-left::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--accent);}
-.auth-left-inner{width:100%;max-width:340px;}
+.auth-left{width:45%;min-width:320px;background:#0d0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 48px;position:relative;overflow:hidden;}
+.auth-left::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='90'%3E%3Cg fill='none' stroke='%23E07B00' stroke-opacity='0.18' stroke-width='1.5'%3E%3Cpolygon points='26,0 52,15 52,45 26,60 0,45 0,15'/%3E%3Cpolygon points='52,45 78,60 78,90 52,105 26,90 26,60'/%3E%3C/g%3E%3C/svg%3E");background-repeat:repeat;z-index:0;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,rgba(0,0,0,1) 40%,rgba(0,0,0,0.2) 100%);}
+.auth-left::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--accent);z-index:2;}
+.auth-left-inner{width:100%;max-width:340px;position:relative;z-index:1;}
 .auth-brand-block{display:flex;align-items:center;gap:14px;margin-bottom:40px;}
 .auth-icon{width:52px;height:52px;background:#1e1c1a;border-radius:10px;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .auth-icon svg{width:38px;height:38px;}
@@ -1010,8 +1010,8 @@ async function bootstrap(){
     currentUser=session.user;
     const{data:profile}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
     currentProfile=profile||{};
-    // Keep email in profile up-to-date for invite lookups (non-blocking)
-    sb.from('profiles').update({email:currentUser.email}).eq('id',currentUser.id).then(()=>{}).catch(()=>{});
+    // Keep email in profile up-to-date for invite lookups (non-blocking upsert)
+    sb.from('profiles').upsert({id:currentUser.id,email:currentUser.email},{onConflict:'id'}).then(()=>{}).catch(()=>{});
     applyRoleUI();
     await loadProject();
     await loadGroups();
