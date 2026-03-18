@@ -921,6 +921,16 @@ function roleDisplayName(role){
   const map={admin:'Project Manager',supervisor:'Project Superintendent',coordinator:'Project Coordinator',viewer:'Unassigned'};
   return map[role]||role||'—';
 }
+function roleSelectStyle(role){
+  const styles={
+    admin:'background:rgba(224,123,0,0.15);color:#c06a00;border-color:rgba(224,123,0,0.3);',
+    supervisor:'background:rgba(60,130,220,0.12);color:#2a6fc4;border-color:rgba(60,130,220,0.3);',
+    coordinator:'background:rgba(40,160,100,0.12);color:#1a8a55;border-color:rgba(40,160,100,0.3);',
+    viewer:'background:rgba(120,120,120,0.1);color:var(--text2);border-color:var(--border);',
+  };
+  return (styles[role]||styles.viewer)+'font-size:13px;font-weight:600;padding:4px 28px 4px 12px;height:32px;border-radius:20px;border-width:1px;border-style:solid;font-family:var(--font);cursor:pointer;appearance:auto;';
+}
+function applyRoleSelectStyle(el){if(el)el.style.cssText=roleSelectStyle(el.value);}
 function getCompleted(item){return logEntries.filter(e=>e.item_id===item.id).reduce((s,e)=>s+Number(e.qty),0);}
 function getPct(item){const c=getCompleted(item);return item.tendered_qty>0?Math.min(100,Math.round(c/item.tendered_qty*100)):0;}
 function pctClass(p){if(p===0)return'pct-0';if(p<30)return'pct-low';if(p<70)return'pct-mid';return p<100?'pct-high':'pct-done';}
@@ -1109,28 +1119,25 @@ async function loadUsers(){
     </div>`:''}
     ${canEdit?await(async()=>{const{data:pending}=await sb.from('notifications').select('id,role,profiles(full_name,email)').eq('project_id',projectId).eq('status','pending');return pending&&pending.length?`<div style="margin-bottom:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;">Pending Invites</div>${pending.map(n=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;"><div><div style="font-size:13px;font-weight:500">${n.profiles?.full_name||n.profiles?.email||'—'}</div><div style="font-size:11px;color:var(--text2)">${n.profiles?.email||''}</div></div><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--text3)">Awaiting response</span><button class="sm danger" onclick="cancelInvite('${n.id}')" style="padding:4px 8px;font-size:11px;">Cancel</button></div></div>`).join('')}</div>`:'';})():''}
     ${members.length?`<div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;gap:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Email</div>
+      <div style="display:grid;grid-template-columns:1.6fr 1.2fr 1fr auto;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;gap:12px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Display Name</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Email</div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Role</div>
         ${canEdit?'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Actions</div>':''}
       </div>
       ${members.map(m=>{
         const u=m.profiles||{};const isSelf=m.user_id===currentUser.id;
-        return`<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);gap:12px;" id="user-row-${m.user_id}">
-          <div style="font-size:13px;color:var(--text2)">${u.email||'—'} ${isSelf?'<span style="font-size:11px;color:var(--text3)">(you)</span>':''}</div>
+        return`<div style="display:grid;grid-template-columns:1.6fr 1.2fr 1fr auto;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);gap:12px;" id="user-row-${m.user_id}">
           <div>
             ${canEdit
-              ?`<div style="display:flex;gap:6px;align-items:center;">
-                  <input type="text" id="name-input-${m.user_id}" value="${u.full_name||''}" placeholder="Enter name…" style="flex:1;font-size:13px;padding:5px 8px;height:32px;" onkeydown="if(event.key==='Enter')saveMemberName('${m.user_id}')">
-                  <button class="sm" onclick="saveMemberName('${m.user_id}')" style="height:32px;padding:0 10px;flex-shrink:0;">Save</button>
-                </div>`
+              ?`<input type="text" id="name-input-${m.user_id}" value="${u.full_name||''}" placeholder="Enter name…" style="width:100%;font-size:13px;padding:5px 8px;height:32px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveMemberName('${m.user_id}')">`
               :`<span style="font-size:13px;">${u.full_name||'<span style="color:var(--text3);font-style:italic">Not set</span>'}</span>`
             }
           </div>
+          <div style="font-size:13px;color:var(--text2)">${u.email||'—'} ${isSelf?'<span style="font-size:11px;color:var(--text3)">(you)</span>':''}</div>
           <div>
             ${canEdit&&!isSelf
-              ?`<select style="font-size:13px;padding:5px 28px 5px 8px;height:32px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);" onchange="updateUserRole('${m.user_id}',this.value)">
+              ?`<select style="${roleSelectStyle(m.role)}" onchange="updateUserRole('${m.user_id}',this.value);applyRoleSelectStyle(this)">
                   ${roleOptions.map(o=>`<option value="${o.value}"${m.role===o.value?' selected':''}>${o.label}</option>`).join('')}
                 </select>`
               :`<span class="nav-role role-${m.role}" style="display:inline-flex;padding:3px 10px;">${roleDisplayName(m.role)}</span>`
@@ -1138,6 +1145,7 @@ async function loadUsers(){
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
             <div id="user-status-${m.user_id}" style="font-size:12px;color:var(--text2)"></div>
+            ${canEdit?`<button class="sm" onclick="saveMemberName('${m.user_id}')" style="height:32px;padding:0 10px;flex-shrink:0;">Save</button>`:''}
             ${canEdit&&!isSelf?`<button class="sm danger" onclick="removeMember('${m.user_id}')" style="padding:4px 8px;font-size:11px;">Remove</button>`:''}
           </div>
         </div>`;
