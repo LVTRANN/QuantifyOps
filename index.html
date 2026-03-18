@@ -130,6 +130,7 @@ body{font-family:var(--font);color:var(--text);background:var(--bg);font-size:14
 .nav.collapsed .nav-user-info,
 .nav.collapsed .notif-label{display:none;}
 .nav.collapsed .nav-switcher-row{display:none!important;}
+.nav.collapsed #proj-color-dot-collapsed{display:flex!important;}
 .nav.collapsed .nav-section-label{padding:0;height:0;overflow:hidden;}
 .reports-submenu{overflow:hidden;max-height:0;transition:max-height .2s ease;}
 .reports-submenu.open{max-height:130px;}
@@ -466,7 +467,12 @@ body.theme-dark{
       </button>
     </div>
     <!-- Project switcher -->
-    <div class="nav-switcher-row" style="padding:10px 10px;border-bottom:1px solid var(--nav-border);display:flex;align-items:center;gap:4px;">
+    <!-- Collapsed color dot (only visible when nav is collapsed) -->
+    <div id="proj-color-dot-collapsed" style="display:none;justify-content:center;align-items:center;padding:10px 0;border-bottom:1px solid var(--nav-border);">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--nav-border);transition:background .2s;" id="proj-color-dot-collapsed-inner"></div>
+    </div>
+    <div class="nav-switcher-row" style="padding:10px 10px;border-bottom:1px solid var(--nav-border);display:flex;align-items:center;gap:6px;">
+      <div id="proj-color-dot" style="width:8px;height:8px;border-radius:50%;background:var(--nav-border);flex-shrink:0;transition:background .2s;"></div>
       <select id="project-switcher" onchange="switchProject(this.value)" style="flex:1;background:rgba(255,255,255,0.06);color:var(--nav-text);border:1px solid var(--nav-border);font-size:12px;font-weight:500;padding:6px 8px;cursor:pointer;outline:none;border-radius:var(--r);appearance:none;-webkit-appearance:none;font-family:var(--font);">
         <option value="" style="background:#1e1d1a;">Loading…</option>
       </select>
@@ -623,7 +629,10 @@ body.theme-dark{
         <div class="sec-title">Project details</div>
         <button class="sm danger" onclick="deleteProject()">Delete project</button>
       </div>
-      <div class="field"><label>Project name</label><input type="text" id="proj-name" placeholder="Main St. Reconstruction"></div>
+      <div class="form-row" style="display:flex;gap:12px;align-items:flex-end;">
+        <div class="field" style="flex:1;margin-bottom:0"><label>Project name</label><input type="text" id="proj-name" placeholder="Main St. Reconstruction"></div>
+        <div class="field" style="margin-bottom:0"><label>Colour</label><div id="proj-color-picker" style="display:flex;gap:6px;align-items:center;height:38px;"></div></div>
+      </div>
       <div class="form-row cols-2">
         <div class="field"><label>Contract #</label><input type="text" id="proj-contract" placeholder="2024-MU-001"></div>
         <div class="field"><label>Job number</label><input type="text" id="proj-job-number" placeholder="Internal job #"></div>
@@ -1265,6 +1274,36 @@ async function removeMember(userId){
   if(error){toast('Error: '+error.message);return;}
   await loadUsers();toast('Member removed ✓');
 }
+const PROJECT_COLORS=[
+  {hex:'#E07B00',label:'Orange'},
+  {hex:'#3B82F6',label:'Blue'},
+  {hex:'#22C55E',label:'Green'},
+  {hex:'#EF4444',label:'Red'},
+  {hex:'#A855F7',label:'Purple'},
+  {hex:'#14B8A6',label:'Teal'},
+  {hex:'#EC4899',label:'Pink'},
+  {hex:'#EAB308',label:'Yellow'},
+];
+function getProjectColor(id){return id?localStorage.getItem('proj-color-'+id)||null:null;}
+function setProjectColor(id,hex){if(id)localStorage.setItem('proj-color-'+id,hex);}
+function applyProjectColorDot(id){
+  const c=getProjectColor(id);
+  const bg=c||'var(--nav-border)';
+  const shadow=c?`0 0 5px ${c}88`:'none';
+  const dot=document.getElementById('proj-color-dot');
+  if(dot){dot.style.background=bg;dot.style.boxShadow=shadow;}
+  const dot2=document.getElementById('proj-color-dot-collapsed-inner');
+  if(dot2){dot2.style.background=bg;dot2.style.boxShadow=shadow;}
+}
+function renderColorPicker(projectId){
+  const el=document.getElementById('proj-color-picker');
+  if(!el)return;
+  const current=getProjectColor(projectId);
+  el.innerHTML=PROJECT_COLORS.map(({hex,label})=>`
+    <button title="${label}" onclick="setProjectColor('${projectId}','${hex}');renderColorPicker('${projectId}');applyProjectColorDot('${projectId}')"
+      style="width:22px;height:22px;border-radius:50%;background:${hex};border:2px solid ${current===hex?'var(--text)':'transparent'};cursor:pointer;padding:0;flex-shrink:0;transition:border-color .15s;outline:${current===hex?'2px solid '+hex+'44':'none'};outline-offset:1px;"></button>
+  `).join('');
+}
 function loadProjectFields(p){
   if(!p)return;
   document.getElementById('proj-name').value=p.name||'';
@@ -1273,6 +1312,8 @@ function loadProjectFields(p){
   document.getElementById('proj-contractor').value=p.contractor||'';
   document.getElementById('proj-start').value=p.start_date||'';
   document.getElementById('proj-end').value=p.end_date||'';
+  renderColorPicker(p.id);
+  applyProjectColorDot(p.id);
 }
 function renderProjectSwitcher(){
   const sel=document.getElementById('project-switcher');
