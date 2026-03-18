@@ -1616,7 +1616,7 @@ function buildReportHTML(periodLabel, periodType, rangeEntries, periodStart, per
               <th style="width:100px;text-align:right">Value</th>
               <th>Notes</th>
             </tr></thead>
-            <tbody>${catItems.map(d=>{
+            <tbody class="report-tbl-body">${catItems.map(d=>{
               const it=items.find(i=>i.id===d.itemId);if(!it)return'';
               const totComp=getCompleted(it);const pct=getPct(it);
               const notes=[...new Set(d.entries.map(e=>e.notes).filter(Boolean))].join('; ');
@@ -1656,12 +1656,11 @@ function buildReportHTML(periodLabel, periodType, rangeEntries, periodStart, per
                 <td style="text-align:right;vertical-align:middle">${fmtC(d.totalQty*it.unit_price)}</td>
                 <td style="font-size:12px;color:var(--text2);vertical-align:middle">${periodType==='daily'?notes||'—':''}</td>
               </tr>${dateBreakdown}`;
-            }).join('')}</tbody>
-            <tfoot><tr style="background:var(--bg2)">
+            <tr style="background:var(--bg2)">
               <td colspan="7" style="font-weight:600;padding:8px;font-size:12px">Subtotal</td>
               <td style="text-align:right;font-weight:600;padding:8px">${fmtC(catItems.reduce((s,d)=>{const it=items.find(i=>i.id===d.itemId);return s+(it?d.totalQty*it.unit_price:0);},0))}</td>
               <td></td>
-            </tr></tfoot>
+            </tr></tbody>
           </table></div>
         </div>`).join('')}
       <div style="display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border)">
