@@ -6,6 +6,7 @@ export function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   const tab = document.getElementById('tab-' + id);
   if (tab) tab.classList.add('active');
+  if (id !== 'items' && window.showDupesOnly) { window.showDupesOnly = false; }
   if (id === 'dashboard') window.renderDashboard();
   if (id === 'items') window.renderItems();
   if (id === 'daily') window.renderDailyPage();

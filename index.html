@@ -338,16 +338,27 @@ body.theme-dark{
 .report-tbl-wrap{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;overflow-x:auto;}
 .no-print{display:block;}
 @media print{
-  body{background:white!important;color:#1c1b18!important;}
+  @page{margin:0.3cm;}
+  body{background:white!important;color:#1c1b18!important;margin:0!important;padding:0!important;}
   .nav,.no-print,.sec-header,.nav-toggle,.nav-toggle-mobile,.nav-backdrop,.toast,.modal-bg{display:none!important;}
-  .main-content{margin-left:0!important;}
+  .main-content{margin:0!important;padding:0!important;}
   .page{display:none!important;}
   #page-report{display:block!important;padding:0;max-width:100%;}
   .report-wrap{border:1px solid #ddd!important;box-shadow:none!important;}
   .report-header{background:#1e1d1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .report-section{border-bottom:1px solid #e4e2de!important;}
+  .report-tbl{table-layout:fixed;width:100%;}
   .report-tbl th{background:#eeecea!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .report-tbl td,.report-tbl th{border-color:#e4e2de!important;}
+  .report-tbl td,.report-tbl th{border-color:#e4e2de!important;padding:6px 8px;font-size:11px;overflow:hidden;}
+  .report-tbl th:nth-child(1),.report-tbl td:nth-child(1){width:5%;}
+  .report-tbl th:nth-child(2),.report-tbl td:nth-child(2){width:30%;}
+  .report-tbl th:nth-child(3),.report-tbl td:nth-child(3){width:4%;}
+  .report-tbl th:nth-child(4),.report-tbl td:nth-child(4){width:5%;}
+  .report-tbl th:nth-child(5),.report-tbl td:nth-child(5){width:7%;}
+  .report-tbl th:nth-child(6),.report-tbl td:nth-child(6){width:7%;}
+  .report-tbl th:nth-child(7),.report-tbl td:nth-child(7){width:5%;}
+  .report-tbl th:nth-child(8),.report-tbl td:nth-child(8){width:10%;}
+  .report-tbl th:nth-child(9),.report-tbl td:nth-child(9){width:27%;}
   .report-tbl-wrap{border-color:#e4e2de!important;overflow:visible;}
   [style*="var(--text2)"]{color:#5c5a54!important;}
   [style*="var(--bg2)"]{background:#eeecea!important;}
@@ -554,10 +565,20 @@ body.theme-dark{
   <div id="page-items" class="page">
     <div class="sec-header">
       <div class="sec-title">Contract Items</div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:4px 10px;font-size:12px;color:var(--text2);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input type="date" id="items-date" onchange="syncItemsDate()" style="border:none;background:transparent;color:var(--text);font-size:12px;font-family:var(--font);padding:0;cursor:pointer;outline:none;width:120px;">
+        </div>
         <button id="btn-select-mode" onclick="toggleSelectMode()">Select</button>
+        <button id="btn-create-group" onclick="openCreateGroupModal()" style="display:none">+ Group</button>
         <button id="btn-add-item" onclick="openAddItemModal()">+ Add item</button>
       </div>
+    </div>
+    <div id="duplicate-banner" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.35);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:none;align-items:center;gap:10px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="flex:1;font-size:13px;color:var(--text)"><span id="duplicate-banner-text"></span></div>
+      <button id="btn-view-dupes" onclick="toggleDupesFilter()" style="font-size:12px;padding:4px 10px;flex-shrink:0;">View</button>
     </div>
     <div class="select-toolbar" id="select-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
@@ -724,9 +745,13 @@ body.theme-dark{
     <div class="modal-title" id="item-modal-title">Add contract item</div>
     <div class="form-row cols-2">
       <div class="field"><label>Item number</label><input type="text" id="mi-num" placeholder="101"></div>
-      <div class="field"><label>Unit</label><input type="text" id="mi-unit" placeholder="m"></div>
+      <div class="field"><label>Spec. No.</label><input type="text" id="mi-spec" placeholder="e.g. 701-2"></div>
     </div>
     <div class="field"><label>Description</label><input type="text" id="mi-desc" placeholder="150mm PVC Watermain"></div>
+    <div class="form-row cols-2">
+      <div class="field"><label>Unit</label><input type="text" id="mi-unit" placeholder="m"></div>
+      <div></div>
+    </div>
     <div class="form-row cols-2">
       <div class="field"><label>Tendered qty</label><input type="number" id="mi-qty" placeholder="850" inputmode="decimal"></div>
       <div class="field"><label>Unit price ($)</label><input type="number" id="mi-price" step="0.01" placeholder="85.00" inputmode="decimal"></div>
@@ -748,10 +773,20 @@ body.theme-dark{
     <div class="modal-title" id="daily-modal-title">Log quantity</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.4" id="daily-modal-item-info"></div>
     <div style="flex:1;overflow-y:auto;min-height:0;">
-      <div class="field"><label>Quantity installed today</label><input type="number" id="dm-qty" min="0" step="any" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label>Quantity installed today</label><input type="number" id="dm-qty" min="0" step="any" inputmode="decimal" placeholder="0" onkeydown="if(event.key==='Enter')saveDailyEntry()"></div>
       <div class="form-row cols-2">
-        <div class="field"><label>Date</label><input type="date" id="dm-date"></div>
+        <div class="field"><label>Date</label><input type="date" id="dm-date" onchange="checkDailyDate()"></div>
         <div class="field"><label>Your name</label><input type="text" id="dm-super" placeholder="Your name"></div>
+      </div>
+      <div id="dm-date-warning" style="display:none;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span style="font-size:12px;color:#ca8a04;font-weight:500;">Date is not today — <span id="dm-date-warning-text"></span></span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="sm" onclick="resetDailyDateToToday()" style="flex:1;font-size:12px;">Use today's date</button>
+          <button class="sm" onclick="document.getElementById('dm-date-warning').style.display='none';submitDailyEntry()" style="flex:1;font-size:12px;">Log anyway</button>
+        </div>
       </div>
       <div class="field"><label>Notes (optional)</label><input type="text" id="dm-notes" placeholder="e.g. Section B2, Sta 3+20"></div>
       <div class="field">
@@ -769,7 +804,7 @@ body.theme-dark{
     </div>
     <div style="display:flex;gap:8px;padding-top:12px;margin-top:4px;border-top:1px solid var(--border);flex-shrink:0;">
       <button style="flex:1" onclick="closeDailyModal()">Cancel</button>
-      <button class="primary" style="flex:1" id="btn-submit-entry" onclick="submitDailyEntry()">Log entry</button>
+      <button class="primary" style="flex:1" id="btn-submit-entry" onclick="saveDailyEntry()">Log entry</button>
     </div>
   </div>
 </div>
@@ -826,6 +861,19 @@ body.theme-dark{
     <div style="display:flex;gap:8px">
       <button style="flex:1" onclick="closeRenameGroupModal()">Cancel</button>
       <button class="primary" style="flex:1" onclick="confirmRenameGroup()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Group Modal -->
+<div class="modal-bg" id="create-group-modal" onclick="if(event.target===this)closeCreateGroupModal()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Create group</div>
+    <div class="field"><label>Group name</label><input type="text" id="create-group-input" placeholder="e.g. Watermain, Road Building…" onkeydown="if(event.key==='Enter')confirmCreateGroup()"></div>
+    <div style="display:flex;gap:8px">
+      <button style="flex:1" onclick="closeCreateGroupModal()">Cancel</button>
+      <button class="primary" style="flex:1" onclick="confirmCreateGroup()">Create</button>
     </div>
   </div>
 </div>
@@ -917,7 +965,8 @@ const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 let currentUser=null,currentProfile=null,projectId=null;
 let items=[],logEntries=[],groups=[],allProjects=[],projectMemberships=[],teamMembers=[];
 let currentProjectRole='viewer';
-let selectMode=false,editingItemId=null,dailyItemId=null;
+let selectMode=false,editingItemId=null,dailyItemId=null,lastSelectedId=null;
+window.showDupesOnly=false;
 let renamingGroupName=null,editingLogId=null,editingPhotoUrl=null;
 let selectedItems=new Set();
 let activeItemCat='All',activeDailyCat='All',activeDocCat='All';
@@ -1082,6 +1131,8 @@ function applyRoleUI(){
   if(addProjBtn) addProjBtn.style.display='block';
   const uploadDocBtn=document.getElementById('btn-upload-doc');
   if(uploadDocBtn) uploadDocBtn.style.display=isAdmin()?'':'none';
+  const createGroupBtn=document.getElementById('btn-create-group');
+  if(createGroupBtn) createGroupBtn.style.display=isAdmin()?'':'none';
 }
 
 // ── Loaders ────────────────────────────────────────────────────────
@@ -1500,6 +1551,23 @@ async function addGroup(){
   groups.push(data);document.getElementById('new-group-name').value='';
   renderGroupsList();populateGroupSelects();toast('Group added ✓');
 }
+function openCreateGroupModal(){
+  document.getElementById('create-group-input').value='';
+  document.getElementById('create-group-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('create-group-input').focus(),100);
+}
+function closeCreateGroupModal(){document.getElementById('create-group-modal').classList.remove('open');}
+async function confirmCreateGroup(){
+  if(!isAdmin()){toast('Only Project Managers can manage groups');return;}
+  if(!projectId){toast('Save your project first');return;}
+  const name=document.getElementById('create-group-input').value.trim();
+  if(!name){toast('Enter a group name');return;}
+  const{data,error}=await sb.from('groups').insert({project_id:projectId,name,sort_order:groups.length}).select().single();
+  if(error){toast('Error: '+error.message);return;}
+  groups.push(data);
+  closeCreateGroupModal();
+  renderGroupsList();populateGroupSelects();renderItems();toast('Group "'+name+'" created ✓');
+}
 async function deleteGroup(id){
   if(!isAdmin())return;
   const g=groups.find(g=>g.id===id);
@@ -1598,7 +1666,39 @@ function renderDashboard(){
 }
 
 // ── Items page ─────────────────────────────────────────────────────
+function checkDuplicateItems(){
+  const banner=document.getElementById('duplicate-banner');
+  if(!banner)return;
+  const counts={};
+  items.forEach(it=>{if(it.item_number){counts[it.item_number]=(counts[it.item_number]||0)+1;}});
+  const dupes=Object.entries(counts).filter(([,n])=>n>1).map(([num])=>num);
+  if(dupes.length){
+    document.getElementById('duplicate-banner-text').textContent=
+      `${dupes.length} duplicate item number${dupes.length>1?'s':''} found: ${dupes.join(', ')}. Remove duplicates to keep your data accurate.`;
+    banner.style.display='flex';
+  } else {
+    banner.style.display='none';
+    window.showDupesOnly=false;
+  }
+  const btn=document.getElementById('btn-view-dupes');
+  if(btn)btn.textContent=window.showDupesOnly?'Show all':'View';
+}
+function toggleDupesFilter(){
+  window.showDupesOnly=!window.showDupesOnly;
+  const btn=document.getElementById('btn-view-dupes');
+  if(btn)btn.textContent=window.showDupesOnly?'Show all':'View';
+  renderItems();
+}
+function syncItemsDate(){
+  const d=document.getElementById('items-date')?.value||today();
+  const entryDate=document.getElementById('entry-date');
+  if(entryDate)entryDate.value=d;
+}
 function renderItems(){
+  // Sync items-date with entry-date
+  const itemsDate=document.getElementById('items-date');
+  if(itemsDate&&!itemsDate.value)itemsDate.value=document.getElementById('entry-date')?.value||today();
+  checkDuplicateItems();
   const cats=getCategories();
   const cf=document.getElementById('cat-filters');
   if(cf)cf.innerHTML=cats.map(c=>`<button class="filter-chip${activeItemCat===c?' active':''}" onclick="setItemCat('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
@@ -1606,10 +1706,13 @@ function renderItems(){
   const el=document.getElementById('items-list');
   let filtered=items.filter(it=>(!q||it.item_number?.toLowerCase().includes(q)||it.description?.toLowerCase().includes(q)));
   if(activeItemCat!=='All')filtered=filtered.filter(it=>getEffectiveGroupName(it)===activeItemCat);
+  if(window.showDupesOnly){const dc={};items.forEach(it=>{if(it.item_number)dc[it.item_number]=(dc[it.item_number]||0)+1;});filtered=filtered.filter(it=>dc[it.item_number]>1);}
   if(!filtered.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div style="font-weight:600;margin-bottom:6px">${items.length?'No matches':'No items yet'}</div>${isAdmin()&&!items.length?'<button class="primary" onclick="showPage(\'setup\')">Go to Setup →</button>':''}</div>`;return;}
   const grouped={};
   filtered.forEach(it=>{const c=getEffectiveGroupName(it);if(!grouped[c])grouped[c]=[];grouped[c].push(it);});
   Object.values(grouped).forEach(arr=>arr.sort((a,b)=>(a.item_number||'').localeCompare(b.item_number||'',undefined,{numeric:true,sensitivity:'base'})));
+  const dupeCounts={};items.forEach(it=>{if(it.item_number)dupeCounts[it.item_number]=(dupeCounts[it.item_number]||0)+1;});
+  const dupeNums=new Set(Object.keys(dupeCounts).filter(n=>dupeCounts[n]>1));
   el.innerHTML=Object.entries(grouped).map(([cat,ci])=>{
     const isCollapsed=collapsedGroups.has(cat);
     const groupCV=ci.reduce((s,it)=>s+it.tendered_qty*it.unit_price,0);
@@ -1631,7 +1734,9 @@ function renderItems(){
       <div class="cat-items${isCollapsed?' collapsed':''}">
         ${ci.map(it=>{
           const c=getCompleted(it);const p=getPct(it);
-          return`<div class="item-card${selectMode?' item-card-selectable':''}" id="card-${it.id}" onclick="${selectMode?`toggleCardSelect('${it.id}')`:''}" style="${selectMode?'cursor:pointer;':''}">
+          const isDupe=dupeNums.has(it.item_number);
+          return`<div class="item-card${selectMode?' item-card-selectable':''}" id="card-${it.id}" onclick="${selectMode?`toggleCardSelect('${it.id}',event)`:''}" style="${selectMode?'cursor:pointer;user-select:none;':''}${isDupe?'border-color:rgba(239,68,68,0.5);':''}">
+            ${isDupe?`<div style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:11px;color:#ef4444;font-weight:500;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Duplicate item number</div>`:''}
             ${selectMode?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
               <div id="sel-indicator-${it.id}" style="width:20px;height:20px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:transparent"></div>
               <div style="flex:1"><div class="item-card-title">${it.item_number} — ${it.description}</div><div class="item-card-sub">${it.unit} · ${statusBadge(p)}</div></div>
@@ -1647,6 +1752,8 @@ function renderItems(){
               <div><div class="item-stat-label">Completed</div><div class="item-stat-value">${fmtN(c)} ${it.unit}</div></div>
               <div><div class="item-stat-label">Unit price</div><div class="item-stat-value">${fmtC(it.unit_price)}</div></div>
               <div><div class="item-stat-label">Earned</div><div class="item-stat-value">${fmtC(c*it.unit_price)}</div></div>
+              <div><div class="item-stat-label">Remaining</div><div class="item-stat-value" style="color:${(it.tendered_qty-c)*it.unit_price>0?'var(--warn-text)':'var(--success-text)'}">${fmtC((it.tendered_qty-c)*it.unit_price)}</div></div>
+              ${it.spec_no?`<div style="margin-left:auto;text-align:right"><div class="item-stat-label">Spec. No.</div><div class="item-stat-value">${it.spec_no}</div></div>`:''}
             </div>
             <div style="display:flex;gap:6px">
               ${isSupervisorOrAdmin()?`<button class="sm primary" onclick="openDailyModal('${it.id}')" style="flex:1">+ Log</button>`:''}
@@ -1683,31 +1790,48 @@ function toggleDailyGroupCollapse(cat){const key='daily-'+cat;if(collapsedGroups
 function toggleSelectMode(){
   if(!isAdmin()){toast('Only Project Managers can select items');return;}
   selectMode=!selectMode;
-  if(!selectMode) selectedItems.clear();
+  if(!selectMode){selectedItems.clear();lastSelectedId=null;}
   const toolbar=document.getElementById('select-toolbar');
   const btn=document.getElementById('btn-select-mode');
   toolbar.style.display=selectMode?'flex':'none';
   btn.textContent=selectMode?'Done':'Select';
   document.getElementById('btn-add-item').style.display=selectMode?'none':'';
+  const cgBtn=document.getElementById('btn-create-group');if(cgBtn&&isAdmin())cgBtn.style.display=selectMode?'none':'';
   if(selectMode){
     const sel=document.getElementById('move-to-group-select');
     sel.innerHTML='<option value="" style="background:#1e1d1a;color:#fff">Move to group…</option>'+groups.map(g=>`<option value="${g.id}" style="background:#1e1d1a;color:#fff">${g.name}</option>`).join('');
   }
   updateSelectionCount();renderItems();
 }
-function toggleCardSelect(id){
+function applyCardSelectState(id,isSelected){
   const card=document.getElementById('card-'+id);
   const indicator=document.getElementById('sel-indicator-'+id);
   if(!card)return;
-  const isSelected=!selectedItems.has(id);
-  if(isSelected) selectedItems.add(id);
-  else selectedItems.delete(id);
+  if(isSelected) selectedItems.add(id); else selectedItems.delete(id);
   card.classList.toggle('selected',isSelected);
   if(indicator){
     indicator.style.background=isSelected?'var(--accent)':'transparent';
     indicator.style.borderColor=isSelected?'var(--accent)':'var(--border2)';
     indicator.innerHTML=isSelected?`<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`:'';
   }
+}
+function toggleCardSelect(id,event){
+  if(event?.shiftKey&&lastSelectedId&&lastSelectedId!==id){
+    // Get flat ordered list of all visible item IDs from rendered cards
+    const allCards=[...document.querySelectorAll('.item-card[id^="card-"]')].map(el=>el.id.replace('card-',''));
+    const a=allCards.indexOf(lastSelectedId);
+    const b=allCards.indexOf(id);
+    if(a!==-1&&b!==-1){
+      const [start,end]=[Math.min(a,b),Math.max(a,b)];
+      const selectAs=!selectedItems.has(id);
+      allCards.slice(start,end+1).forEach(rid=>applyCardSelectState(rid,selectAs));
+      updateSelectionCount();
+      return;
+    }
+  }
+  const isSelected=!selectedItems.has(id);
+  applyCardSelectState(id,isSelected);
+  lastSelectedId=id;
   updateSelectionCount();
 }
 function updateSelectionCount(){
@@ -1879,8 +2003,11 @@ function openDailyModal(itemId){
   document.getElementById('daily-modal-title').textContent=it.item_number+' — '+it.description;
   document.getElementById('daily-modal-item-info').textContent=fmtN(c)+' of '+fmtN(it.tendered_qty)+' '+it.unit+' completed ('+getPct(it)+'%)';
   document.getElementById('dm-qty').value='';
-  document.getElementById('dm-date').value=document.getElementById('entry-date')?.value||today();
+  const activeDate=document.getElementById('items-date')?.value||document.getElementById('entry-date')?.value||today();
+  document.getElementById('dm-date').value=activeDate;
   document.getElementById('dm-super').value=currentProfile?.full_name||'';
+  document.getElementById('dm-date-warning').style.display='none';
+  checkDailyDate();
   document.getElementById('dm-notes').value='';
   clearPhoto('dm');
   document.getElementById('daily-modal').classList.add('open');
@@ -1899,6 +2026,34 @@ async function uploadPhoto(prefix){
   if(error){toast('Photo upload failed: '+error.message);return null;}
   const{data}=sb.storage.from('Photos').getPublicUrl(path);
   return data?.publicUrl||null;
+}
+function checkDailyDate(){
+  const selected=document.getElementById('dm-date').value;
+  const warning=document.getElementById('dm-date-warning');
+  if(!warning)return;
+  if(selected&&selected!==today()){
+    const dt=new Date(selected+'T12:00:00');
+    document.getElementById('dm-date-warning-text').textContent=
+      dt.toLocaleDateString('en-CA',{month:'long',day:'numeric',year:'numeric'});
+    warning.style.display='block';
+  } else {
+    warning.style.display='none';
+  }
+}
+function resetDailyDateToToday(){
+  document.getElementById('dm-date').value=today();
+  document.getElementById('dm-date-warning').style.display='none';
+}
+function saveDailyEntry(){
+  const qty=parseFloat(document.getElementById('dm-qty').value);
+  if(!qty||qty<=0){toast('Enter a valid quantity');return;}
+  const selected=document.getElementById('dm-date').value;
+  if(selected&&selected!==today()){
+    checkDailyDate();
+    document.getElementById('dm-date-warning').style.display='block';
+    return;
+  }
+  submitDailyEntry();
 }
 async function submitDailyEntry(){
   const qty=parseFloat(document.getElementById('dm-qty').value);
@@ -2372,7 +2527,7 @@ function openAddItemModal(){
   if(!isAdmin()){toast('Only Project Managers can add items');return;}
   editingItemId=null;
   document.getElementById('item-modal-title').textContent='Add contract item';
-  ['mi-num','mi-desc','mi-unit','mi-qty','mi-price','mi-cat'].forEach(id=>document.getElementById(id).value='');
+  ['mi-num','mi-spec','mi-desc','mi-unit','mi-qty','mi-price','mi-cat'].forEach(id=>document.getElementById(id).value='');
   populateGroupSelects();document.getElementById('mi-group').value='';
   document.getElementById('btn-delete-item').style.display='none';
   document.getElementById('item-modal').classList.add('open');
@@ -2382,6 +2537,7 @@ function openEditItem(id){
   editingItemId=id;const it=items.find(i=>i.id===id);if(!it)return;
   document.getElementById('item-modal-title').textContent='Edit item';
   document.getElementById('mi-num').value=it.item_number||'';
+  document.getElementById('mi-spec').value=it.spec_no||'';
   document.getElementById('mi-desc').value=it.description||'';
   document.getElementById('mi-unit').value=it.unit||'';
   document.getElementById('mi-qty').value=it.tendered_qty||'';
@@ -2404,7 +2560,7 @@ async function deleteItemFromModal(){
 async function saveItem(){
   if(!isAdmin()){toast('Only Project Managers can save items');return;}
   if(!projectId){toast('Save your project first');return;}
-  const payload={project_id:projectId,item_number:document.getElementById('mi-num').value.trim(),description:document.getElementById('mi-desc').value.trim(),unit:document.getElementById('mi-unit').value.trim()||'ea',tendered_qty:parseFloat(document.getElementById('mi-qty').value)||0,unit_price:parseFloat(document.getElementById('mi-price').value)||0,category:document.getElementById('mi-cat').value.trim()||'Misc',group_id:document.getElementById('mi-group').value||null};
+  const payload={project_id:projectId,item_number:document.getElementById('mi-num').value.trim(),spec_no:document.getElementById('mi-spec').value.trim()||null,description:document.getElementById('mi-desc').value.trim(),unit:document.getElementById('mi-unit').value.trim()||'ea',tendered_qty:parseFloat(document.getElementById('mi-qty').value)||0,unit_price:parseFloat(document.getElementById('mi-price').value)||0,category:document.getElementById('mi-cat').value.trim()||'Misc',group_id:document.getElementById('mi-group').value||null};
   if(!payload.description){toast('Description is required');return;}
   const btn=document.getElementById('btn-save-item');btn.disabled=true;btn.textContent='Saving…';
   let error;
@@ -2434,6 +2590,7 @@ async function deleteAllItems(){
 // ── File import ────────────────────────────────────────────────────
 const FIELD_DEFS=[
   {key:'item_number', label:'Item number',   required:false, hint:'e.g. 101, A-01'},
+  {key:'spec_no',     label:'Spec. No.',     required:false, hint:'Specification number'},
   {key:'description', label:'Description',   required:true,  hint:'Item name / work description'},
   {key:'unit',        label:'Unit',          required:false, hint:'e.g. m, ea, m3, tonne'},
   {key:'tendered_qty',label:'Tendered qty',  required:false, hint:'Contract quantity'},
@@ -2442,6 +2599,7 @@ const FIELD_DEFS=[
 ];
 const ALIASES={
   item_number: ['item','item no','item #','item number','item_no','no','#','ref','code','pay item','pay item no'],
+  spec_no:     ['spec','spec no','spec #','spec number','specification','specification no','specification number','spec. no','spec. no.'],
   description: ['description','desc','item description','work description','scope','name','activity','pay item description'],
   unit:        ['unit','uom','unit of measure','units'],
   tendered_qty:['quantity','qty','tendered qty','tendered quantity','estimated qty','estimated quantity','contract qty','amount'],
@@ -2501,8 +2659,8 @@ async function confirmMapping(){
   const toInsert=[];let skipped=0;
   mappingRows.forEach(r=>{
     const desc=r[descCol]?.toString().trim();if(!desc){skipped++;return;}
-    const numCol=getCol('item_number'),unitCol=getCol('unit'),qtyCol=getCol('tendered_qty'),priceCol=getCol('unit_price'),catCol=getCol('category');
-    toInsert.push({project_id:projectId,item_number:numCol!==null?r[numCol]?.toString().trim()||'':'',description:desc,unit:unitCol!==null?r[unitCol]?.toString().trim()||'ea':'ea',tendered_qty:qtyCol!==null?parseFloat(r[qtyCol])||0:0,unit_price:priceCol!==null?parseFloat(r[priceCol])||0:0,category:catCol!==null?r[catCol]?.toString().trim()||'Misc':'Misc'});
+    const numCol=getCol('item_number'),specCol=getCol('spec_no'),unitCol=getCol('unit'),qtyCol=getCol('tendered_qty'),priceCol=getCol('unit_price'),catCol=getCol('category');
+    toInsert.push({project_id:projectId,item_number:numCol!==null?r[numCol]?.toString().trim()||'':'',spec_no:specCol!==null?r[specCol]?.toString().trim()||'':'',description:desc,unit:unitCol!==null?r[unitCol]?.toString().trim()||'ea':'ea',tendered_qty:qtyCol!==null?parseFloat(r[qtyCol])||0:0,unit_price:priceCol!==null?parseFloat(r[priceCol])||0:0,category:catCol!==null?r[catCol]?.toString().trim()||'Misc':'Misc'});
   });
   if(!toInsert.length){toast('No valid rows to import');return;}
   const btn=document.getElementById('btn-confirm-map');btn.disabled=true;btn.textContent='Importing…';
