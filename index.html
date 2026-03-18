@@ -1106,7 +1106,8 @@ async function bootstrap(){
     document.getElementById('app').style.display='block';
     document.getElementById('entry-date').value=today();
     await loadUsers();
-    renderDashboard();
+    const initPage = window.location.pathname.replace('/', '').trim() || 'dashboard';
+    showPage(initPage, { pushState: false });
     loadNotifications();
   }catch(err){
     console.error('Bootstrap error:',err);
