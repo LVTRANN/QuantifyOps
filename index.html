@@ -1491,11 +1491,14 @@ async function updateUserRole(userId, newRole){
   toast(`Role updated to ${roleDisplayName(newRole)} ✓`);
 }
 const pageTitles={dashboard:'Dashboard',items:'Contract Items',daily:'Daily Entry',report:'Reports',log:'Activity Log',docs:'Documents',setup:'Setup'};
-function showPage(id){
+const VALID_PAGES=new Set(['dashboard','items','daily','report','log','docs','setup']);
+function showPage(id,{pushState=true}={}){
+  if(!VALID_PAGES.has(id))id='dashboard';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
+  if(id!=='items'&&window.showDupesOnly)window.showDupesOnly=false;
   if(id==='dashboard')renderDashboard();
   if(id==='items')renderItems();
   if(id==='daily')renderDailyPage();
@@ -1503,7 +1506,12 @@ function showPage(id){
   if(id==='log'){updateLogFilters();renderLog();}
   if(id==='docs')renderDocs();
   if(id==='setup'&&isAdmin())loadUsers();
+  if(pushState)history.pushState({page:id},'','/'+id);
 }
+window.addEventListener('popstate',e=>{
+  const id=e.state?.page||window.location.pathname.replace('/','').trim()||'dashboard';
+  showPage(id,{pushState:false});
+});
 
 // ── Project ────────────────────────────────────────────────────────
 async function saveProject(){
