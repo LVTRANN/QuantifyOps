@@ -575,7 +575,7 @@ body.theme-dark{
         <button id="btn-add-item" onclick="openAddItemModal()">+ Add item</button>
       </div>
     </div>
-    <div id="duplicate-banner" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.35);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:none;align-items:center;gap:10px;">
+    <div id="duplicate-banner" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.35);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;align-items:center;gap:10px;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <div style="flex:1;font-size:13px;color:var(--text)"><span id="duplicate-banner-text"></span></div>
       <button id="btn-view-dupes" onclick="toggleDupesFilter()" style="font-size:12px;padding:4px 10px;flex-shrink:0;">View</button>
@@ -2036,20 +2036,6 @@ function showExistingPhoto(prefix, url){
   document.getElementById(prefix+'-photo-preview').style.display='block';
   document.getElementById(prefix+'-photo-zone').style.display='none';
 }
-async function uploadPhoto(prefix){
-  const input=document.getElementById(prefix+'-photo-input');
-  if(!input||!input.files.length) return null;
-  const file=input.files[0];
-  if(!PHOTO_TYPES.has(file.type)){toast('Photos must be JPEG, PNG, WEBP, or GIF');return null;}
-  if(file.size>PHOTO_MAX){toast('Photo must be under 10 MB');return null;}
-  const ext=file.name.split('.').pop()||'jpg';
-  const path=`${projectId}/${Date.now()}.${ext}`;
-  const{error}=await sb.storage.from('photos').upload(path,file,{upsert:true});
-  if(error){toast('Photo upload failed: '+error.message);return null;}
-  const{data}=sb.storage.from('photos').getPublicUrl(path);
-  return data?.publicUrl||null;
-}
-
 function openDailyModal(itemId){
   if(!isSupervisorOrAdmin()){toast('No permission to log entries');return;}
   const it=items.find(i=>i.id===itemId);if(!it)return;
