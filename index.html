@@ -1009,6 +1009,7 @@ function getPct(item){const c=getCompleted(item);return item.tendered_qty>0?Math
 function pctClass(p){if(p===0)return'pct-0';if(p<30)return'pct-low';if(p<70)return'pct-mid';return p<100?'pct-high':'pct-done';}
 function fmtN(n){return Number(n).toLocaleString('en-CA',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function fmtC(n){return'$'+Number(n).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML;}
 function fmtDate(d){if(!d)return'';const p=d.split('-');return p[1]+'/'+p[2]+'/'+p[0];}
 function fmtDateMed(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('en-CA',{month:'long',day:'numeric',year:'numeric'});}
 function fmtDateLong(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('en-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
@@ -1194,7 +1195,7 @@ async function loadUsers(){
       <input type="email" id="invite-email" placeholder="Enter email of signed-up user to invite…" style="flex:1" onkeydown="if(event.key==='Enter')inviteMember()">
       <button class="primary" onclick="inviteMember()">Invite</button>
     </div>`:''}
-    ${canEdit?await(async()=>{const{data:pending}=await sb.from('notifications').select('id,role,profiles(full_name,email)').eq('project_id',projectId).eq('status','pending');return pending&&pending.length?`<div style="margin-bottom:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;">Pending Invites</div>${pending.map(n=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;"><div><div style="font-size:13px;font-weight:500">${n.profiles?.full_name||n.profiles?.email||'—'}</div><div style="font-size:11px;color:var(--text2)">${n.profiles?.email||''}</div></div><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--text3)">Awaiting response</span><button class="sm danger" onclick="cancelInvite('${n.id}')" style="padding:4px 8px;font-size:11px;">Cancel</button></div></div>`).join('')}</div>`:'';})():''}
+    ${canEdit?await(async()=>{const{data:pending}=await sb.from('notifications').select('id,role,profiles(full_name,email)').eq('project_id',projectId).eq('status','pending');return pending&&pending.length?`<div style="margin-bottom:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;">Pending Invites</div>${pending.map(n=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;"><div><div style="font-size:13px;font-weight:500">${esc(n.profiles?.full_name||n.profiles?.email)||'—'}</div><div style="font-size:11px;color:var(--text2)">${esc(n.profiles?.email)||''}</div></div><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--text3)">Awaiting response</span><button class="sm danger" onclick="cancelInvite('${n.id}')" style="padding:4px 8px;font-size:11px;">Cancel</button></div></div>`).join('')}</div>`:'';})():''}
     ${members.length?`<div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
       <div style="display:grid;grid-template-columns:1.6fr 1.2fr 1fr auto;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;gap:12px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Display Name</div>
@@ -1208,10 +1209,10 @@ async function loadUsers(){
           <div>
             ${canEdit
               ?`<input type="text" id="name-input-${m.user_id}" value="${u.full_name||''}" placeholder="Enter name…" style="width:100%;font-size:13px;padding:5px 8px;height:32px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')saveMemberName('${m.user_id}')">`
-              :`<span style="font-size:13px;">${u.full_name||'<span style="color:var(--text3);font-style:italic">Not set</span>'}</span>`
+              :`<span style="font-size:13px;">${u.full_name?esc(u.full_name):'<span style="color:var(--text3);font-style:italic">Not set</span>'}</span>`
             }
           </div>
-          <div style="font-size:13px;color:var(--text2)">${u.email||'—'} ${isSelf?'<span style="font-size:11px;color:var(--text3)">(you)</span>':''}</div>
+          <div style="font-size:13px;color:var(--text2)">${esc(u.email)||'—'} ${isSelf?'<span style="font-size:11px;color:var(--text3)">(you)</span>':''}</div>
           <div>
             ${canEdit&&!isSelf
               ?`<select style="${roleSelectStyle(m.role)}" onchange="updateUserRole('${m.user_id}',this.value);applyRoleSelectStyle(this)">
@@ -1300,8 +1301,8 @@ async function renderNotifList(){
   el.innerHTML=notifs.map(n=>{
     const pm=inviterMap[n.invited_by]||{};const proj=n.projects;
     return`<div style="padding:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;">
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Project invite: <span style="color:var(--accent)">${proj?.name||'Unknown project'}</span></div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Invited by ${pm.full_name||pm.email||'Project Manager'} · ${roleDisplayName(n.role||'viewer')} access</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Project invite: <span style="color:var(--accent)">${esc(proj?.name)||'Unknown project'}</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Invited by ${esc(pm.full_name||pm.email)||'Project Manager'} · ${roleDisplayName(n.role||'viewer')} access</div>
       <div style="display:flex;gap:8px;">
         <button class="primary" style="flex:1" onclick="acceptInvite('${n.id}','${n.project_id}','${n.role||'viewer'}')">Accept</button>
         <button class="danger" style="flex:1" onclick="denyInvite('${n.id}')">Decline</button>
@@ -1385,7 +1386,7 @@ function renderProjectSwitcher(){
     const isActive=p.id===projectId;
     return`<div onclick="switchProject('${p.id}');closeProjectDropdown()" style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;background:${isActive?'rgba(255,255,255,0.07)':'transparent'};color:var(--nav-text);font-size:12px;font-weight:${isActive?'600':'400'};" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='${isActive?'rgba(255,255,255,0.07)':'transparent'}'">
       <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${c||'rgba(255,255,255,0.2)'};${c?'box-shadow:0 0 4px '+c+'88;':''}"></div>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</span>
       ${isActive?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
     </div>`;
   }).join('');
@@ -1609,11 +1610,11 @@ async function confirmRenameGroup(){
 function renderGroupsList(){
   const el=document.getElementById('groups-list');if(!el)return;
   if(!groups.length){el.innerHTML='<div style="font-size:13px;color:var(--text2);padding:8px 0">No groups yet.</div>';return;}
-  el.innerHTML=groups.map(g=>{const count=items.filter(it=>it.group_id===g.id).length;return`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><span style="font-size:13px;font-weight:500">${g.name}</span><span style="font-size:12px;color:var(--text2);margin-left:8px">${count} item${count!==1?'s':''}</span></div><div style="display:flex;gap:6px"><button class="sm" onclick="openRenameGroupModal('${g.id}')">Rename</button><button class="sm danger" onclick="deleteGroup('${g.id}')">Delete</button></div></div>`;}).join('');
+  el.innerHTML=groups.map(g=>{const count=items.filter(it=>it.group_id===g.id).length;return`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><span style="font-size:13px;font-weight:500">${esc(g.name)}</span><span style="font-size:12px;color:var(--text2);margin-left:8px">${count} item${count!==1?'s':''}</span></div><div style="display:flex;gap:6px"><button class="sm" onclick="openRenameGroupModal('${g.id}')">Rename</button><button class="sm danger" onclick="deleteGroup('${g.id}')">Delete</button></div></div>`;}).join('');
 }
 function populateGroupSelects(){
   const sel=document.getElementById('mi-group');
-  if(sel){const cur=sel.value;sel.innerHTML='<option value="">— No group —</option>'+groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');sel.value=cur;}
+  if(sel){const cur=sel.value;sel.innerHTML='<option value="">— No group —</option>'+groups.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');sel.value=cur;}
 }
 
 // ── Dashboard ──────────────────────────────────────────────────────
@@ -1634,8 +1635,8 @@ function renderDashboard(){
   const contractor=document.getElementById('proj-contractor').value;
   el.innerHTML=`
     <div style="margin-bottom:14px">
-      <div style="font-size:18px;font-weight:600;letter-spacing:-.3px">${projName}</div>
-      ${contract||jobNumber||contractor?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${[contract?'Contract: '+contract:'',jobNumber?'Job: '+jobNumber:'',contractor].filter(Boolean).join(' · ')}</div>`:''}
+      <div style="font-size:18px;font-weight:600;letter-spacing:-.3px">${esc(projName)}</div>
+      ${contract||jobNumber||contractor?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${[contract?'Contract: '+esc(contract):'',jobNumber?'Job: '+esc(jobNumber):'',esc(contractor)].filter(Boolean).join(' · ')}</div>`:''}
     </div>
     <div class="ring-wrap">
       <div style="position:relative;width:80px;height:80px;flex-shrink:0">
@@ -1662,7 +1663,7 @@ function renderDashboard(){
       ${catSum.map(({cat,cv,ce,cp})=>`
         <div onclick="goToGroup('${cat.replace(/'/g,"\\'")}')" style="margin-bottom:12px;cursor:pointer;border-radius:var(--r);padding:8px;margin-left:-8px;margin-right:-8px;transition:background .15s;" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='transparent'">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-            <span class="badge-cat" style="${catStyle(cat)}">${cat}</span>
+            <span class="badge-cat" style="${catStyle(cat)}">${esc(cat)}</span>
             <div style="display:flex;align-items:center;gap:8px">
               <span style="font-size:12px;color:var(--text2)">${fmtC(ce)} / ${fmtC(cv)}</span>
               <span style="font-size:12px;font-weight:600;min-width:32px;text-align:right">${cp}%</span>
@@ -1711,7 +1712,7 @@ function renderItems(){
   checkDuplicateItems();
   const cats=getCategories();
   const cf=document.getElementById('cat-filters');
-  if(cf)cf.innerHTML=cats.map(c=>`<button class="filter-chip${activeItemCat===c?' active':''}" onclick="setItemCat('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
+  if(cf)cf.innerHTML=cats.map(c=>`<button class="filter-chip${activeItemCat===c?' active':''}" onclick="setItemCat('${c.replace(/'/g,"\\'")}')">${esc(c)}</button>`).join('');
   const q=(document.getElementById('item-search')?.value||'').toLowerCase();
   const el=document.getElementById('items-list');
   let filtered=items.filter(it=>(!q||it.item_number?.toLowerCase().includes(q)||it.description?.toLowerCase().includes(q)));
@@ -1733,7 +1734,7 @@ function renderItems(){
       <div class="cat-header" onclick="toggleGroupCollapse('${safeCat}')">
         <div class="cat-header-left">
           <svg class="cat-chevron${isCollapsed?' collapsed':''}" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="badge-cat" style="${catStyle(cat)}">${cat}</span>
+          <span class="badge-cat" style="${catStyle(cat)}">${esc(cat)}</span>
           <span style="font-size:10px;color:var(--text3)">${ci.length} item${ci.length!==1?'s':''}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;min-width:120px;justify-content:flex-end">
@@ -1749,21 +1750,21 @@ function renderItems(){
             ${isDupe?`<div style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:11px;color:#ef4444;font-weight:500;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Duplicate item number</div>`:''}
             ${selectMode?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
               <div id="sel-indicator-${it.id}" style="width:20px;height:20px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:transparent"></div>
-              <div style="flex:1"><div class="item-card-title">${it.item_number} — ${it.description}</div><div class="item-card-sub">${it.unit} · ${statusBadge(p)}</div></div>
+              <div style="flex:1"><div class="item-card-title">${esc(it.item_number)} — ${esc(it.description)}</div><div class="item-card-sub">${esc(it.unit)} · ${statusBadge(p)}</div></div>
             </div>`:`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
-              <div><div class="item-card-title">${it.item_number} — ${it.description}</div><div class="item-card-sub">${it.unit} · ${statusBadge(p)}</div></div>
+              <div><div class="item-card-title">${esc(it.item_number)} — ${esc(it.description)}</div><div class="item-card-sub">${esc(it.unit)} · ${statusBadge(p)}</div></div>
             </div>`}
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:${selectMode?'0':'10px'}">
               <div class="prog-track"><div class="prog-fill ${pctClass(p)}" style="width:${p}%"></div></div>
               <span style="font-size:12px;min-width:32px;text-align:right">${p}%</span>
             </div>
             ${!selectMode?`<div class="item-card-stats">
-              <div><div class="item-stat-label">Tendered</div><div class="item-stat-value">${fmtN(it.tendered_qty)} ${it.unit}</div></div>
-              <div><div class="item-stat-label">Completed</div><div class="item-stat-value">${fmtN(c)} ${it.unit}</div></div>
+              <div><div class="item-stat-label">Tendered</div><div class="item-stat-value">${fmtN(it.tendered_qty)} ${esc(it.unit)}</div></div>
+              <div><div class="item-stat-label">Completed</div><div class="item-stat-value">${fmtN(c)} ${esc(it.unit)}</div></div>
               <div><div class="item-stat-label">Unit price</div><div class="item-stat-value">${fmtC(it.unit_price)}</div></div>
               <div><div class="item-stat-label">Earned</div><div class="item-stat-value">${fmtC(c*it.unit_price)}</div></div>
               <div><div class="item-stat-label">Remaining</div><div class="item-stat-value" style="color:${(it.tendered_qty-c)*it.unit_price>0?'var(--warn-text)':'var(--success-text)'}">${fmtC((it.tendered_qty-c)*it.unit_price)}</div></div>
-              ${it.spec_no?`<div style="margin-left:auto;text-align:right"><div class="item-stat-label">Spec. No.</div><div class="item-stat-value">${it.spec_no}</div></div>`:''}
+              ${it.spec_no?`<div style="margin-left:auto;text-align:right"><div class="item-stat-label">Spec. No.</div><div class="item-stat-value">${esc(it.spec_no)}</div></div>`:''}
             </div>
             <div style="display:flex;gap:6px">
               ${isSupervisorOrAdmin()?`<button class="sm primary" onclick="openDailyModal('${it.id}')" style="flex:1">+ Log</button>`:''}
@@ -1809,7 +1810,7 @@ function toggleSelectMode(){
   const cgBtn=document.getElementById('btn-create-group');if(cgBtn&&isAdmin())cgBtn.style.display=selectMode?'none':'';
   if(selectMode){
     const sel=document.getElementById('move-to-group-select');
-    sel.innerHTML='<option value="" style="background:#1e1d1a;color:#fff">Move to group…</option>'+groups.map(g=>`<option value="${g.id}" style="background:#1e1d1a;color:#fff">${g.name}</option>`).join('');
+    sel.innerHTML='<option value="" style="background:#1e1d1a;color:#fff">Move to group…</option>'+groups.map(g=>`<option value="${g.id}" style="background:#1e1d1a;color:#fff">${esc(g.name)}</option>`).join('');
   }
   updateSelectionCount();renderItems();
 }
@@ -1895,7 +1896,7 @@ function renderDailyPage(){
   if(!items.length){document.getElementById('daily-items-list').innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div style="font-weight:600">No items loaded</div></div>`;return;}
   const cats=getCategories();
   const df=document.getElementById('daily-cat-filters');
-  if(df)df.innerHTML=cats.map(c=>`<button class="filter-chip${activeDailyCat===c?' active':''}" onclick="setDailyCat('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
+  if(df)df.innerHTML=cats.map(c=>`<button class="filter-chip${activeDailyCat===c?' active':''}" onclick="setDailyCat('${c.replace(/'/g,"\\'")}')">${esc(c)}</button>`).join('');
   renderDailyList();
 }
 function setDailyCat(cat){activeDailyCat=cat;renderDailyPage();}
@@ -1930,7 +1931,7 @@ function renderDailyList(){
       <div class="cat-header" onclick="toggleDailyGroupCollapse('${safeCat}')">
         <div class="cat-header-left">
           <svg class="cat-chevron${isCollapsed?' collapsed':''}" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="badge-cat" style="${catStyle(cat)}">${cat}</span>
+          <span class="badge-cat" style="${catStyle(cat)}">${esc(cat)}</span>
           <span style="font-size:10px;color:var(--text3)">${ci.length} item${ci.length!==1?'s':''}</span>
         </div>
       </div>
@@ -1941,7 +1942,7 @@ function renderDailyList(){
           const dayTotal=itemEntries.reduce((s,e)=>s+Number(e.qty),0);
           return`<div class="item-card">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
-              <div><div class="item-card-title">${it.item_number} — ${it.description}</div><div class="item-card-sub">${fmtN(c)} / ${fmtN(it.tendered_qty)} ${it.unit} total</div></div>
+              <div><div class="item-card-title">${esc(it.item_number)} — ${esc(it.description)}</div><div class="item-card-sub">${fmtN(c)} / ${fmtN(it.tendered_qty)} ${esc(it.unit)} total</div></div>
               ${statusBadge(p)}
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -1949,14 +1950,14 @@ function renderDailyList(){
               <span style="font-size:12px;min-width:32px;text-align:right">${p}%</span>
             </div>
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px">
-              Entries on ${fmtDate(selectedDate)} — <span style="color:var(--accent)">${fmtN(dayTotal)} ${it.unit} total</span>
+              Entries on ${fmtDate(selectedDate)} — <span style="color:var(--accent)">${fmtN(dayTotal)} ${esc(it.unit)} total</span>
             </div>
             ${itemEntries.map(e=>`
               <div style="padding:9px 12px;background:var(--bg2);border-radius:var(--r);margin-bottom:6px;border:1px solid var(--border)">
                 <div style="display:flex;align-items:center;gap:8px">
                   <div style="flex:1">
-                    <div style="font-size:13px;font-weight:600">${fmtN(e.qty)} ${it.unit}</div>
-                    <div style="font-size:12px;color:var(--text2);margin-top:1px">${e.supervisor_name||'—'}${e.notes?' · <em>'+e.notes+'</em>':''}</div>
+                    <div style="font-size:13px;font-weight:600">${fmtN(e.qty)} ${esc(it.unit)}</div>
+                    <div style="font-size:12px;color:var(--text2);margin-top:1px">${esc(e.supervisor_name)||'—'}${e.notes?' · <em>'+esc(e.notes)+'</em>':''}</div>
                   </div>
                   <button class="sm" onclick="openEditLogModal('${e.id}')" style="flex-shrink:0">Edit</button>
                   <button class="sm danger" onclick="quickDeleteEntry('${e.id}')" style="flex-shrink:0">Delete</button>
@@ -2231,14 +2232,14 @@ function buildReportHTML(periodLabel, periodType, rangeEntries, periodStart, per
   const contract=document.getElementById('proj-contract').value;
   const jobNumber=document.getElementById('proj-job-number').value;
   const contractor=document.getElementById('proj-contractor').value;
-  const metaParts=[contract?'Contract: '+contract:'',jobNumber?'Job: '+jobNumber:'',contractor].filter(Boolean);
+  const metaParts=[contract?'Contract: '+esc(contract):'',jobNumber?'Job: '+esc(jobNumber):'',esc(contractor)].filter(Boolean);
   const periodTypeLabel={daily:'Daily report',weekly:'Weekly report',monthly:'Monthly report'}[periodType];
   const qtyColLabel={daily:'Qty this day',weekly:'Qty this week',monthly:'Qty this month'}[periodType];
 
   el.innerHTML=`<div class="report-wrap">
     <div class="report-header">
       <div class="report-header-accent"></div>
-      <div class="report-header-project">${projName}</div>
+      <div class="report-header-project">${esc(projName)}</div>
       <div class="report-header-meta">${metaParts.join(' · ')}</div>
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px;flex-wrap:wrap;gap:8px">
         <div>
@@ -2303,21 +2304,21 @@ function buildReportHTML(periodLabel, periodType, rangeEntries, periodStart, per
                         ${dd.sups.length?` · ${[...new Set(dd.sups)].join(', ')}`:''}
                         ${dd.notes.length?` · <em>${[...new Set(dd.notes)].join('; ')}</em>`:''}
                       </td>
-                      <td style="font-size:11px;color:var(--text2)">${it.unit}</td>
+                      <td style="font-size:11px;color:var(--text2)">${esc(it.unit)}</td>
                       <td style="text-align:right;font-size:12px;color:var(--text2)">${fmtN(dd.qty)}</td>
                       <td colspan="5"></td>
                     </tr>`).join('')
                 : '';
               return`<tr style="vertical-align:middle">
-                <td style="font-weight:600;vertical-align:middle">${it.item_number}</td>
-                <td style="vertical-align:middle">${it.description}${periodType==='daily'?`<br><span style="font-size:11px;color:var(--text2)">${entrySups}</span>`:''}</td>
-                <td style="vertical-align:middle">${it.unit}</td>
+                <td style="font-weight:600;vertical-align:middle">${esc(it.item_number)}</td>
+                <td style="vertical-align:middle">${esc(it.description)}${periodType==='daily'?`<br><span style="font-size:11px;color:var(--text2)">${esc(entrySups)}</span>`:''}</td>
+                <td style="vertical-align:middle">${esc(it.unit)}</td>
                 <td style="text-align:right;font-weight:600;vertical-align:middle">${fmtN(d.totalQty)}</td>
                 <td style="text-align:right;vertical-align:middle">${fmtN(totComp)}</td>
                 <td style="text-align:right;vertical-align:middle">${fmtN(it.tendered_qty)}</td>
                 <td style="text-align:right;vertical-align:middle"><span style="font-weight:600;color:${pct>=100?'var(--success-text)':pct>50?'var(--blue)':'var(--text2)'}">${pct}%</span></td>
                 <td style="text-align:right;vertical-align:middle">${fmtC(d.totalQty*it.unit_price)}</td>
-                <td style="font-size:12px;color:var(--text2);vertical-align:middle">${periodType==='daily'?notes||'—':''}</td>
+                <td style="font-size:12px;color:var(--text2);vertical-align:middle">${periodType==='daily'?esc(notes)||'—':''}</td>
               </tr>${dateBreakdown}`;
             }).join('')}<tr style="background:var(--bg2)">
               <td colspan="7" style="font-weight:600;padding:8px;font-size:12px">Subtotal</td>
@@ -2375,11 +2376,11 @@ function renderReport(){
 // ── Log page ───────────────────────────────────────────────────────
 function updateLogFilters(){
   const si=document.getElementById('log-filter-item');const cur=si.value;
-  si.innerHTML='<option value="">All items</option>'+items.map(it=>`<option value="${it.id}">${it.item_number} – ${it.description}</option>`).join('');
+  si.innerHTML='<option value="">All items</option>'+items.map(it=>`<option value="${it.id}">${esc(it.item_number)} – ${esc(it.description)}</option>`).join('');
   si.value=cur;
   const ss=document.getElementById('log-filter-super');const curS=ss.value;
   const supers=[...new Set(logEntries.map(e=>e.supervisor_name).filter(Boolean))].sort();
-  ss.innerHTML='<option value="">All staff</option>'+supers.map(s=>`<option value="${s}">${s}</option>`).join('');
+  ss.innerHTML='<option value="">All staff</option>'+supers.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
   ss.value=curS;
 }
 function renderLog(){
@@ -2399,7 +2400,7 @@ function renderLog(){
         <span class="badge badge-gray" style="flex-shrink:0;font-size:12px;font-weight:600">${fmtN(e.qty)} ${it?it.unit:''}</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;gap:8px">
-        <div style="font-size:12px;color:var(--text2)">${fmtDate(e.entry_date)} · ${e.supervisor_name||'—'}${e.notes?' · <em>'+e.notes+'</em>':''}</div>
+        <div style="font-size:12px;color:var(--text2)">${fmtDate(e.entry_date)} · ${esc(e.supervisor_name)||'—'}${e.notes?' · <em>'+esc(e.notes)+'</em>':''}</div>
         ${isSupervisorOrAdmin()?`<button class="sm" style="flex-shrink:0;font-size:11px;padding:3px 9px" onclick="openEditLogModal('${e.id}')">Edit</button>`:''}
       </div>
       ${e.photo_url?`<a href="${e.photo_url}" target="_blank" style="display:block;margin-top:8px;"><img src="${e.photo_url}" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);border:1px solid var(--border);"></a>`:''}
@@ -2460,7 +2461,7 @@ function renderDocs(){
         <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">
           <div style="font-size:24px;flex-shrink:0">${docIcon(d.file_type)}</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+            <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.name)}</div>
             <div style="font-size:11px;color:var(--text2);margin-top:2px">${fmtFileSize(d.file_size)} · ${fmtDate(d.created_at?.slice(0,10))}</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -2561,7 +2562,7 @@ function closeModal(){document.getElementById('item-modal').classList.remove('op
 async function deleteItemFromModal(){
   if(!isAdmin())return;
   const it=items.find(i=>i.id===editingItemId);if(!it)return;
-  if(!confirm(`Delete "${it.description}"?\n\nAll log entries for this item will also be deleted.`))return;
+  if(!confirm(`Delete "${esc(it.description)}"?\n\nAll log entries for this item will also be deleted.`))return;
   await sb.from('log_entries').delete().eq('item_id',editingItemId);
   const{error}=await sb.from('items').delete().eq('id',editingItemId);
   if(error){toast('Error: '+error.message);return;}
