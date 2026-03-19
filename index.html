@@ -1496,15 +1496,18 @@ async function createNewProject(){
   const btn=document.getElementById('btn-create-project');btn.disabled=true;btn.textContent='Creating…';
   const{data,error}=await sb.from('projects').insert(payload).select().single();
   if(error){btn.disabled=false;btn.textContent='Create project';toast('Error: '+error.message);return;}
-  // Auto-add creator as Project Manager
-  await sb.from('project_members').insert({project_id:data.id,user_id:currentUser.id,role:'admin'});
+  // Add creator as Project Manager — if this fails, roll back the project
+  const{error:memErr}=await sb.from('project_members').insert({project_id:data.id,user_id:currentUser.id,role:'admin'});
+  if(memErr){
+    await sb.from('projects').delete().eq('id',data.id);
+    btn.disabled=false;btn.textContent='Create project';
+    toast('Error creating project: '+memErr.message);return;
+  }
   btn.disabled=false;btn.textContent='Create project';
-  const membership={role:'admin',project_id:data.id,projects:data};
-  projectMemberships.push(membership);
-  allProjects.push(data);
-  projectId=data.id;currentProjectRole='admin';
-  applyRoleUI();renderProjectSwitcher();
   closeNewProjectModal();
+  // Reload from DB to ensure state matches what's actually saved
+  projectId=data.id;
+  await loadProject();
   await loadGroups();await loadItems();await loadLog();await loadDocuments();
   renderDashboard();loadUsers();showPage('setup');
   toast(`"${name}" created — you are the Project Manager ✓`);
