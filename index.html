@@ -1010,6 +1010,28 @@ function pctClass(p){if(p===0)return'pct-0';if(p<30)return'pct-low';if(p<70)retu
 function fmtN(n){return Number(n).toLocaleString('en-CA',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function fmtC(n){return'$'+Number(n).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML;}
+
+// ── Audit log ──────────────────────────────────────────────────────
+async function auditLog(action,details={}){
+  try{await sb.from('audit_log').insert({project_id:projectId||null,user_id:currentUser?.id,action,details});}
+  catch(e){/* non-blocking */}
+}
+
+// ── Idle session timeout ───────────────────────────────────────────
+const IDLE_TIMEOUT=60*60*1000; // 60 min
+const IDLE_WARN=58*60*1000;    // warn at 58 min
+let lastActivity=Date.now(),idleWarned=false,idleInterval=null;
+function resetIdleTimer(){lastActivity=Date.now();idleWarned=false;}
+function startIdleTimer(){
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,resetIdleTimer,{passive:true}));
+  idleInterval=setInterval(()=>{
+    if(!currentUser)return;
+    const idle=Date.now()-lastActivity;
+    if(idle>=IDLE_TIMEOUT){auditLog('session_timeout');signOut();}
+    else if(idle>=IDLE_WARN&&!idleWarned){idleWarned=true;toast('You\'ll be signed out in 2 minutes due to inactivity');}
+  },30*1000);
+}
+
 const PHOTO_TYPES=new Set(['image/jpeg','image/png','image/webp','image/gif']);
 const PHOTO_MAX=10*1024*1024; // 10 MB
 const DOC_TYPES=new Set(['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation','image/jpeg','image/png','image/webp','text/plain','text/csv']);
@@ -1057,7 +1079,7 @@ async function signUp(){
   errEl.textContent='Account created! Check your email to confirm, then sign in.';errEl.style.display='block';
   setTimeout(()=>showAuthMode('signin'),3000);
 }
-async function signOut(){await sb.auth.signOut();location.reload();}
+async function signOut(){await auditLog('sign_out');await sb.auth.signOut();location.reload();}
 
 // ── Sidebar toggle ─────────────────────────────────────────────────
 function toggleNav(){
@@ -1114,6 +1136,8 @@ async function bootstrap(){
     const initPage = window.location.pathname.replace('/', '').trim() || 'dashboard';
     showPage(initPage, { pushState: false });
     loadNotifications();
+    startIdleTimer();
+    auditLog('sign_in');
   }catch(err){
     console.error('Bootstrap error:',err);
     document.getElementById('loading-screen').style.display='none';
@@ -1251,6 +1275,7 @@ async function inviteMember(){
   if(error){toast('Error: '+error.message);return;}
   document.getElementById('invite-email').value='';
   await loadUsers();
+  auditLog('invite_sent',{invitee_id:invitee.id,email});
   toast(`Invite sent to ${invitee.full_name||email} ✓`);
 }
 async function saveMemberName(userId){
@@ -1270,6 +1295,7 @@ async function cancelInvite(notifId){
   if(!isAdmin())return;
   if(!confirm('Cancel this invitation?'))return;
   await sb.from('notifications').delete().eq('id',notifId);
+  auditLog('invite_cancelled',{notification_id:notifId});
   await loadUsers();toast('Invitation cancelled ✓');
 }
 async function loadNotifications(){
@@ -1324,12 +1350,14 @@ async function acceptInvite(notifId,projId){
   await loadProject();
   await loadNotifications();
   renderNotifList();
+  auditLog('invite_accepted',{notification_id:notifId,project_id:projId,role});
   toast('Invitation accepted ✓');
 }
 async function denyInvite(notifId){
   await sb.from('notifications').update({status:'denied'}).eq('id',notifId);
   await loadNotifications();
   renderNotifList();
+  auditLog('invite_declined',{notification_id:notifId});
   toast('Invitation declined');
 }
 async function removeMember(userId){
@@ -1337,6 +1365,7 @@ async function removeMember(userId){
   if(!confirm('Remove this person from the project?'))return;
   const{error}=await sb.from('project_members').delete().eq('project_id',projectId).eq('user_id',userId);
   if(error){toast('Error: '+error.message);return;}
+  auditLog('member_removed',{removed_user_id:userId});
   await loadUsers();toast('Member removed ✓');
 }
 const PROJECT_COLORS=[
@@ -1496,6 +1525,7 @@ async function updateUserRole(userId, newRole){
     statusEl.style.color='var(--success-text)';
     setTimeout(()=>{statusEl.textContent='';statusEl.style.color='';},2000);
   }
+  auditLog('role_changed',{target_user_id:userId,new_role:newRole});
   toast(`Role updated to ${roleDisplayName(newRole)} ✓`);
 }
 const pageTitles={dashboard:'Dashboard',items:'Contract Items',daily:'Daily Entry',report:'Reports',log:'Activity Log',docs:'Documents',setup:'Setup'};
@@ -1541,6 +1571,7 @@ async function deleteProject(){
   const p=allProjects.find(p=>p.id===projectId);
   if(!confirm(`Delete "${p?.name}"?\n\nThis will permanently delete all items, log entries, and groups for this project.\n\nThis cannot be undone.`))return;
   // Supabase cascades delete items, log_entries, groups via ON DELETE CASCADE
+  await auditLog('project_deleted',{project_name:p?.name});
   const{error}=await sb.from('projects').delete().eq('id',projectId);
   if(error){toast('Error: '+error.message);return;}
   // Remove from local state
@@ -1593,6 +1624,7 @@ async function deleteGroup(id){
   await sb.from('items').update({group_id:null}).eq('group_id',id);
   const{error}=await sb.from('groups').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
+  auditLog('group_deleted',{group_name:g?.name});
   groups=groups.filter(g=>g.id!==id);
   await loadItems();renderGroupsList();populateGroupSelects();renderItems();toast('Group deleted');
 }
@@ -1611,7 +1643,9 @@ async function confirmRenameGroup(){
   if(!name){toast('Enter a name');return;}
   const{error}=await sb.from('groups').update({name}).eq('id',renamingGroupName);
   if(error){toast('Error: '+error.message);return;}
-  const g=groups.find(g=>g.id===renamingGroupName);if(g)g.name=name;
+  const g=groups.find(g=>g.id===renamingGroupName);
+  auditLog('group_renamed',{old_name:g?.name,new_name:name});
+  if(g)g.name=name;
   closeRenameGroupModal();renderGroupsList();populateGroupSelects();renderItems();toast('Group renamed ✓');
 }
 function renderGroupsList(){
@@ -1891,6 +1925,7 @@ async function deleteSelectedItems(){
   const btn=document.getElementById('btn-delete-selected');
   btn.disabled=true;btn.textContent='Deleting…';
   for(const id of ids){await sb.from('log_entries').delete().eq('item_id',id);await sb.from('items').delete().eq('id',id);}
+  auditLog('items_deleted',{count:ids.length,item_ids:ids});
   btn.disabled=false;btn.textContent='Delete';
   await loadItems();await loadLog();toggleSelectMode();updateLogFilters();renderDashboard();
   toast(`${ids.length} item${ids.length!==1?'s':''} deleted`);
