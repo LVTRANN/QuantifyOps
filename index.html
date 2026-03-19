@@ -103,14 +103,14 @@ body{font-family:var(--font);color:var(--text);background:var(--bg);font-size:14
 .nav-user-name{font-size:12px;font-weight:600;color:var(--nav-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .nav-user-sub{font-size:11px;color:var(--nav-text2);margin-top:1px;}
 .nav-role{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;letter-spacing:.3px;}
-.role-admin{background:rgba(224,123,0,0.2);color:var(--accent);}
+.role-admin{background:rgba(60,130,220,0.2);color:#4a90d0;}
 .role-supervisor{background:rgba(255,255,255,0.1);color:var(--nav-text);}
 .role-coordinator{background:rgba(255,255,255,0.1);color:var(--nav-text);}
 .role-viewer{background:rgba(255,255,255,0.06);color:var(--nav-text2);}
 /* Role badges in main content (light bg) */
 .role-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:.2px;display:inline-flex;}
-.role-badge.role-admin{background:rgba(224,123,0,0.15);color:#c06a00;border:1px solid rgba(224,123,0,0.3);}
-.role-badge.role-supervisor{background:rgba(60,130,220,0.12);color:#2a6fc4;border:1px solid rgba(60,130,220,0.3);}
+.role-badge.role-admin{background:rgba(60,130,220,0.12);color:#1a5fb4;border:1px solid rgba(60,130,220,0.3);}
+.role-badge.role-supervisor{background:rgba(224,123,0,0.12);color:#c06a00;border:1px solid rgba(224,123,0,0.3);}
 .role-badge.role-coordinator{background:rgba(40,160,100,0.12);color:#1a8a55;border:1px solid rgba(40,160,100,0.3);}
 .role-badge.role-viewer{background:rgba(120,120,120,0.1);color:var(--text2);border:1px solid var(--border);}
 .notif-bell{position:relative;display:flex;align-items:center;gap:9px;padding:0 10px 0 12px;height:38px;font-size:13px;font-weight:500;cursor:pointer;color:var(--nav-text2);border:none;border-left:3px solid transparent;border-radius:0 8px 8px 0;background:transparent;transition:all .15s;user-select:none;white-space:nowrap;margin-right:10px;width:100%;text-align:left;}
@@ -791,11 +791,11 @@ body.theme-dark{
       <!-- Role legend -->
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;">
         <div style="padding:10px 12px;background:rgba(224,123,0,0.08);border-radius:var(--r);border:1px solid rgba(224,123,0,0.25)">
-          <div style="font-size:11px;font-weight:700;color:#c06a00;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Manager</div>
+          <div style="font-size:11px;font-weight:700;color:#1a5fb4;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Manager</div>
           <div style="font-size:11px;color:var(--text2);line-height:1.5">Full access — manage contract, items, groups, documents, team</div>
         </div>
         <div style="padding:10px 12px;background:rgba(60,130,220,0.08);border-radius:var(--r);border:1px solid rgba(60,130,220,0.25)">
-          <div style="font-size:11px;font-weight:700;color:#2a6fc4;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Superintendent</div>
+          <div style="font-size:11px;font-weight:700;color:#c06a00;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Superintendent</div>
           <div style="font-size:11px;color:var(--text2);line-height:1.5">Log quantities, view reports, activity log, documents</div>
         </div>
         <div style="padding:10px 12px;background:rgba(40,160,100,0.08);border-radius:var(--r);border:1px solid rgba(40,160,100,0.25)">
@@ -1084,8 +1084,8 @@ function roleDisplayName(role){
 }
 function roleSelectStyle(role){
   const styles={
-    admin:'background:rgba(224,123,0,0.15);color:#c06a00;border-color:rgba(224,123,0,0.3);',
-    supervisor:'background:rgba(60,130,220,0.12);color:#2a6fc4;border-color:rgba(60,130,220,0.3);',
+    admin:'background:rgba(60,130,220,0.12);color:#1a5fb4;border-color:rgba(60,130,220,0.3);',
+    supervisor:'background:rgba(224,123,0,0.12);color:#c06a00;border-color:rgba(224,123,0,0.3);',
     coordinator:'background:rgba(40,160,100,0.12);color:#1a8a55;border-color:rgba(40,160,100,0.3);',
     viewer:'background:rgba(120,120,120,0.1);color:var(--text2);border-color:var(--border);',
   };
