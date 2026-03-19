@@ -1558,7 +1558,19 @@ async function saveProject(){
   if(!payload.name){toast('Project name is required');return;}
   let error;
   if(projectId){({error}=await sb.from('projects').update(payload).eq('id',projectId));}
-  else{const{data,error:e}=await sb.from('projects').insert({...payload,created_by:currentUser.id}).select().single();error=e;if(data){projectId=data.id;allProjects.push(data);}}
+  else{
+    const{data,error:e}=await sb.from('projects').insert({...payload,created_by:currentUser.id}).select().single();
+    error=e;
+    if(data){
+      projectId=data.id;allProjects.push(data);
+      // Add creator as admin so the project is visible on next load
+      await sb.from('project_members').insert({project_id:data.id,user_id:currentUser.id,role:'admin'});
+      const membership={role:'admin',project_id:data.id,projects:data};
+      projectMemberships.push(membership);
+      currentProjectRole='admin';
+      applyRoleUI();
+    }
+  }
   if(error){toast('Error: '+error.message);return;}
   const idx=allProjects.findIndex(p=>p.id===projectId);
   if(idx!==-1)allProjects[idx]={...allProjects[idx],...payload};
