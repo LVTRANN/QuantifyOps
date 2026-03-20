@@ -4,6 +4,7 @@
 
 ## Always Do First
 - **Invoke the `frontend-design` skill** before writing any frontend code, every session, no exceptions.
+- **Run `/design-inspiration`** before any design or UI work — read every image in `.claude/design-inspiration/references/`, extract design principles, and apply them throughout. No exceptions.
 
 ## Reference Images
 - If a reference image is provided: match layout, spacing, typography, and color exactly. Swap in placeholder content (images via `https://placehold.co/`, generic copy). Do not improve or add to the design.
