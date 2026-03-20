@@ -205,9 +205,13 @@ body.theme-light .main-content{background-image:radial-gradient(circle,rgba(0,0,
   /* add horizontal divider between the two rows */
   .dash-stat-grid .dash-stat-cell:nth-child(-n+2){border-bottom:1px solid var(--border);}
 
-  /* Dashboard — period row: keep 3 cols, shrink padding + font */
-  .dash-period-cell{padding:12px 10px!important;}
-  .dash-period-value{font-size:16px!important;}
+  /* Dashboard — period row: 4→2×2 on mobile */
+  .dash-period-row{grid-template-columns:repeat(2,1fr)!important;}
+  .dash-period-cell{padding:14px!important;}
+  .dash-period-cell:nth-child(-n+2){border-bottom:1px solid var(--border);}
+  .dash-period-cell:nth-child(odd){border-right:1px solid var(--border)!important;}
+  .dash-period-cell:nth-child(even){border-right:none!important;}
+  .dash-period-value{font-size:18px!important;}
 
   /* General metric scale-down */
   .metric-value{font-size:26px;}
@@ -2072,16 +2076,24 @@ function renderDashboard(){
       const weekStart=new Date(now);weekStart.setDate(now.getDate()-dow);
       const weekStartStr=weekStart.toISOString().slice(0,10);
       const val=e=>{const it=items.find(i=>i.id===e.item_id);return it?Number(e.qty)*it.unit_price:0;};
+      const yest=new Date(now);yest.setDate(now.getDate()-1);
+      const yestStr=yest.toISOString().slice(0,10);
       const todayVal=logEntries.filter(e=>e.entry_date===todayStr).reduce((s,e)=>s+val(e),0);
+      const yestVal=logEntries.filter(e=>e.entry_date===yestStr).reduce((s,e)=>s+val(e),0);
       const weekVal=logEntries.filter(e=>e.entry_date>=weekStartStr&&e.entry_date<=todayStr).reduce((s,e)=>s+val(e),0);
       const monthVal=logEntries.filter(e=>e.entry_date.startsWith(monthStr)).reduce((s,e)=>s+val(e),0);
       const weekPct=tc>0?Math.round(weekVal/tc*100):0;
       const monthPct=tc>0?Math.round(monthVal/tc*100):0;
-      return`<div class="dash-period-row" style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;overflow:hidden;background:var(--bg-card);">
+      return`<div class="dash-period-row" style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;overflow:hidden;background:var(--bg-card);">
         <div class="dash-period-cell" style="padding:18px 20px;border-right:1px solid var(--border);background:linear-gradient(135deg,rgba(224,123,0,0.06) 0%,transparent 70%);border-top:3px solid var(--accent);">
           <div class="metric-label">Today</div>
           <div class="dash-period-value metric-value" style="font-size:24px;color:var(--accent)">${fmtC(todayVal)}</div>
           <div style="font-size:11px;color:var(--text3);margin-top:4px">${logEntries.filter(e=>e.entry_date===todayStr).length} entr${logEntries.filter(e=>e.entry_date===todayStr).length===1?'y':'ies'}</div>
+        </div>
+        <div class="dash-period-cell" style="padding:18px 20px;border-right:1px solid var(--border);border-top:3px solid var(--border2);">
+          <div class="metric-label">Yesterday</div>
+          <div class="dash-period-value metric-value" style="font-size:24px">${fmtC(yestVal)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">${logEntries.filter(e=>e.entry_date===yestStr).length} entr${logEntries.filter(e=>e.entry_date===yestStr).length===1?'y':'ies'}</div>
         </div>
         <div class="dash-period-cell" style="padding:18px 20px;border-right:1px solid var(--border);border-top:3px solid var(--border2);">
           <div class="metric-label">This week</div>
